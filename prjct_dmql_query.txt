@@ -1,0 +1,659 @@
+--CREATE DATABASE laptop_prices_database
+
+--creating main laptops table
+CREATE TABLE laptops_main (
+    id_laptop SERIAL PRIMARY KEY,
+    company VARCHAR(100),
+    product VARCHAR(100),
+    type_name VARCHAR(50),
+    inches DECIMAL,
+    ram INT,
+    os VARCHAR(50),
+    weight DECIMAL,
+    price_euros DECIMAL,
+    screen VARCHAR(50),
+    screen_width INT,
+    screen_height INT,
+    touchscreen BOOLEAN,
+    ips_panel BOOLEAN,
+    retina_display BOOLEAN,
+    cpu_company VARCHAR(50),
+    cpu_frequency DECIMAL,
+    cpu_model VARCHAR(100),
+    primary_storage_capacity INT,
+    secondary_storage_capacity INT,
+    primary_storage_type VARCHAR(50),
+    secondary_storage_type VARCHAR(50),
+    gpu_company VARCHAR(50),
+    gpu_model VARCHAR(100)
+);
+
+SELECT * FROM laptops_main ;
+
+SELECT COUNT(*) FROM laptops_main 
+
+---DELETE  FROM laptops_main
+
+-- Creating mini tables based on BCNF normalized process
+
+CREATE TABLE company_table (
+    company_id SERIAL PRIMARY KEY,
+    company_name VARCHAR(100) NOT NULL,
+	product_model	VARCHAR(100),
+	spec_type_name	VARCHAR(50)
+);
+
+select * from company_table
+
+CREATE TABLE features_table (
+    features_id SERIAL PRIMARY KEY,
+	company VARCHAR(100),
+    product VARCHAR(100),
+    type_name VARCHAR(50),
+    ips_panel BOOLEAN,
+    ram INT,
+    os VARCHAR(50),
+	id_laptop INT,
+	FOREIGN KEY (id_laptop) REFERENCES laptops_main(id_laptop)
+);
+select * from features_table
+
+CREATE TABLE price_table (
+    id_laptop INT PRIMARY KEY REFERENCES laptops_main(id_laptop),
+	product VARCHAR(100),
+    type_name VARCHAR(50),
+    company VARCHAR(100) NOT NULL,
+	price_euros DECIMAL
+);
+
+select * from price_table
+
+CREATE TABLE products_table (
+    id INT PRIMARY KEY REFERENCES laptops_main(id_laptop),
+	product_model VARCHAR(100),
+    spec_type_name VARCHAR(255),
+    os VARCHAR(255),
+    weight DECIMAL(5, 2),
+    price_euros DECIMAL(10, 2)
+);
+select * from products_table;
+
+CREATE TABLE weight_table (
+    weight_id SERIAL PRIMARY KEY,
+    id_laptop INT,
+    weight DECIMAL,
+	company VARCHAR(100),
+	product_model VARCHAR(100),
+    spec_type_name VARCHAR(255),	
+    FOREIGN KEY (id_laptop) REFERENCES laptops_main(id_laptop)
+);
+
+select * from weight_table;
+
+CREATE TABLE cpu_data (
+    cpu_id SERIAL PRIMARY KEY ,
+	cpu_model VARCHAR(100),
+	cpu_company VARCHAR(50),
+    cpu_frequency DECIMAL,
+	id_laptop INT,
+	FOREIGN KEY (id_laptop) REFERENCES laptops_main(id_laptop)
+);
+
+select * from cpu_data;
+
+CREATE TABLE gpu_data_table (
+    gpu_id SERIAL PRIMARY KEY,
+	gpu_company VARCHAR(50),
+    gpu_model VARCHAR(100),
+	id_laptop INT,
+	FOREIGN KEY (id_laptop) REFERENCES laptops_main(id_laptop)
+);
+
+select * from gpu_data_table;
+
+
+CREATE TABLE primary_storage_table (
+    storage_id_p SERIAL PRIMARY KEY,
+    primary_storage_capacity INT,
+    primary_storage_type VARCHAR(50),
+	id_laptop INT,
+	FOREIGN KEY (id_laptop) REFERENCES laptops_main(id_laptop)
+);
+
+select * from primary_storage_table;
+
+CREATE TABLE secondary_storage_table (
+    storage_id_s SERIAL PRIMARY KEY,
+    secondary_storage_capacity INT,
+    secondary_storage_type VARCHAR(50),
+	id_laptop INT,
+	FOREIGN KEY (id_laptop) REFERENCES laptops_main(id_laptop)
+);
+
+select * from secondary_storage_table;
+
+--DROP TABLE screens_table;
+
+CREATE TABLE screens_table (
+    id_laptop INT PRIMARY KEY REFERENCES laptops_main(id_laptop),
+    inches DECIMAL,
+	screen VARCHAR(50),
+	screen_width DECIMAL,
+    screen_height DECIMAL,
+    touchscreen BOOLEAN,
+    ips_panel BOOLEAN,
+    retina_display BOOLEAN
+  
+);
+
+select * from screens_table;
+
+CREATE TABLE OS_table (
+	id_laptop INT PRIMARY KEY REFERENCES laptops_main(id_laptop),
+	os VARCHAR(50),
+	company VARCHAR(100),
+	product VARCHAR(100),
+    type_name VARCHAR(255)	
+);
+
+select * from OS_table;
+
+CREATE TABLE RAM_table (
+	ram_id INT PRIMARY KEY REFERENCES laptops_main(id_laptop),
+    ram_capacity INT,
+	primary_storage_capacity INT,
+    secondary_storage_capacity INT
+);
+
+select * from RAM_table;
+
+-- Inserting data into above created table's
+
+INSERT INTO price_table (id_laptop,product,type_name,company,price_euros)
+SELECT DISTINCT id_laptop,product,type_name,company,price_euros
+FROM laptops_main;
+
+select * from price_table;
+
+INSERT INTO features_table (company,product,type_name,ips_panel,ram,os,id_laptop)
+SELECT DISTINCT company,product,type_name,ips_panel,ram,os,id_laptop
+FROM laptops_main;
+
+select * from features_table;
+
+
+INSERT INTO screens_table (id_laptop, inches, screen,screen_width, screen_height,touchscreen, ips_panel, retina_display)
+SELECT DISTINCT
+    id_laptop,inches,screen,screen_width, screen_height ,touchscreen,ips_panel, 
+    retina_display
+FROM laptops_main;
+
+SELECT * FROM screens_table;
+
+
+
+INSERT INTO RAM_table (ram_id, ram_capacity, primary_storage_capacity,secondary_storage_capacity)
+SELECT DISTINCT
+    id_laptop, ram, primary_storage_capacity,secondary_storage_capacity
+FROM laptops_main;
+
+SELECT * FROM RAM_table;
+
+
+INSERT INTO OS_table (id_laptop,os, company,product,type_name)
+SELECT DISTINCT
+    id_laptop,os, company,product,type_name
+FROM laptops_main;
+
+SELECT * FROM OS_table;
+
+INSERT INTO primary_storage_table (primary_storage_capacity,
+primary_storage_type,id_laptop)
+SELECT DISTINCT primary_storage_capacity,
+primary_storage_type,id_laptop
+FROM laptops_main;
+
+select * from primary_storage_table;
+
+INSERT INTO secondary_storage_table (secondary_storage_capacity,
+secondary_storage_type,id_laptop)
+SELECT DISTINCT secondary_storage_capacity,
+secondary_storage_type,id_laptop
+FROM laptops_main;
+
+select * from secondary_storage_table;
+
+INSERT INTO gpu_data_table (gpu_company,gpu_model,id_laptop)
+SELECT DISTINCT gpu_company,gpu_model,id_laptop
+FROM laptops_main;
+
+select * from gpu_data_table;
+
+INSERT INTO cpu_data (cpu_model,cpu_company,cpu_frequency,id_laptop)
+SELECT DISTINCT cpu_model,cpu_company,cpu_frequency,id_laptop
+FROM laptops_main;
+
+select * from cpu_data;
+
+INSERT INTO weight_table (id_laptop,weight,company,product_model,spec_type_name)
+SELECT DISTINCT id_laptop,weight,company,product,type_name
+FROM laptops_main;
+
+select * from weight_table;
+
+INSERT INTO company_table (company_name,product_model,spec_type_name)
+SELECT DISTINCT company,product,type_name FROM laptops_main;
+
+select * from company_table;
+
+
+INSERT INTO products_table ( id,product_model,spec_type_name,os,weight,price_euros)
+SELECT 
+    id_laptop,product, type_name, 
+    os,weight,price_euros 
+FROM laptops_main;
+
+SELECT * FROM products_table;
+
+
+----------
+SELECT 'products_table', COUNT(*) FROM products_table 	UNION ALL
+SELECT 'company_table', COUNT(*) FROM company_table UNION ALL
+SELECT 'weight_table', COUNT(*) FROM weight_table UNION ALL
+SELECT 'cpu_data', COUNT(*) FROM cpu_data UNION ALL
+SELECT 'gpu_data_table', COUNT(*) FROM gpu_data_table UNION ALL
+SELECT 'secondary_storage_table', COUNT(*) FROM secondary_storage_table  UNION ALL
+SELECT 'primary_storage_table', COUNT(*) FROM primary_storage_table UNION ALL
+select 'features_table',count(*) from features_table UNION ALL
+select 'price_table',count(*) from price_table UNION ALL 
+SELECT 'OS_table',count(*) FROM OS_table UNION ALL
+SELECT 'RAM_table',count(*) FROM RAM_table UNION ALL 
+SELECT 'SCREENS_TABLE',count(*) from screens_table;
+
+
+
+----------------< phase 2 >----------
+
+--insert <checking whether i have inspiron 14,15,16 >
+select * from laptops_main;
+select distinct id_laptop,company, product, type_name,primary_storage_capacity,secondary_storage_capacity from laptops_main
+where company = 'Dell' and product in ('Inspiron 14 2 in 1','Inspiron 14','Inspiron 15','Inspiron 16')
+
+DELETE FROM laptops_main
+WHERE company = 'Dell' and product = 'Inspiron 15'
+
+------< Insert into laptops_main >---------
+INSERT INTO laptops_main (company, product, type_name, inches, ram, os, weight, price_euros, screen, screen_width, 
+                          screen_height, touchscreen, ips_panel, retina_display, cpu_company, cpu_frequency, 
+                          cpu_model, primary_storage_capacity, secondary_storage_capacity, primary_storage_type, 
+                          secondary_storage_type, gpu_company, gpu_model)
+VALUES
+('Dell', 'Inspiron 14 2 in 1', 'Notebook', 14, 8, 'Windows 11', 1.6, 799.99, 'Full HD', 1920, 1080, 
+ TRUE, TRUE, FALSE, 'Intel', 2.4, 'Core i5 1135G7', 512, 0, 'SSD', 'None', 'Intel', 'Iris Xe'),
+
+('Dell', 'Inspiron 14', 'Notebook', 14, 8, 'Windows 11', 1.5, 699.99, 'Full HD', 1920, 1080, 
+ FALSE, TRUE, FALSE, 'Intel', 2.1, 'Core i5 1135G7', 256, 0, 'SSD', 'None', 'Intel', 'Iris Xe'),
+
+ ('Dell', 'Inspiron 15', 'Notebook', 15.6, 8, 'Windows 11', 2.2, 750.00, 'Full HD', 1920, 1080, 
+        TRUE, TRUE, FALSE, 'Intel', 2.4, 'Core i5 1135G7', 512, 0, 'SSD', 'None', 'Intel', 'Iris Xe'),
+
+('Dell', 'Inspiron 16', 'Notebook', 16, 16, 'Windows 11', 2.0, 999.99, 'Full HD', 1920, 1080, 
+ FALSE, TRUE, FALSE, 'Intel', 2.6, 'Core i7 1165G7', 512, 0, 'SSD', 'None', 'Intel', 'Iris Xe');
+
+-------< Insert into price_table >----------
+
+SELECT * FROM price_table
+WHERE PRODUCT = 'Inspiron 15';
+
+INSERT INTO price_table (id_laptop, product, type_name, company, price_euros)
+VALUES (4842, 'Inspiron 15', 'Notebook', 'Dell', 750.00) ;
+
+
+---------< delete queries >-----------
+
+
+-- Delete ivalid records From OS table
+select count(*) from OS_table
+where os = 'No OS'
+
+DELETE FROM OS_table
+where os = 'No OS' 
+
+select count(*) from price_table
+where price_euros in (174,196,191.9) 
+and product in ('Inspiron 3552','Vivobook E200HA','Legion Y520-15IKBN')
+order by price_euros
+
+----- Delete from price_table based on a condition
+DELETE FROM price_table
+where price_euros in (174,196,191.9) 
+and product in ('Inspiron 3552','Vivobook E200HA','Legion Y520-15IKBN');
+
+
+-------< updating records >-----------
+
+
+select price_euros,touchscreen,* from laptops_main
+where touchscreen = TRUE and price_euros < 500
+order by price_euros
+
+----- Increase price by 10% for laptops with touchscreen
+UPDATE laptops_main
+SET price_euros = price_euros * 1.10
+where touchscreen = TRUE and price_euros < 500;
+
+-- Update screen resolution for a specific product
+
+select screen ,retina_display,* from screens_table
+WHERE retina_display = 'false' screen = '4K Ultra HD' AND retina_display = 'false'
+
+-- Update screen resolution from 4K Ultra HD to full hd for a retina_display false
+
+UPDATE screens_table
+SET screen = 'Full HD'
+WHERE screen = '4K Ultra HD' AND retina_display = 'false';
+
+
+
+----- select queries using  "join", "order by", "group by", subquery, etc
+
+-- using JOIN
+-- combining product and price tables for Listing laptops with their price
+
+SELECT products_table.product_model,products_table.spec_type_name, 
+price_table.price_euros
+FROM products_table
+JOIN price_table 
+ON products_table.id = price_table.id_laptop;
+
+
+SELECT *
+FROM laptops_main l
+JOIN screens_table s ON l.id_laptop = s.id_laptop
+WHERE l.weight < 2.0 AND s.touchscreen = TRUE;
+
+-- using order by 
+-- List expensive laptops ordered by price 
+
+SELECT company, price_euros,product
+FROM laptops_main
+where price_euros > 500
+ORDER BY price_euros desc;
+
+-- Average price per company
+SELECT company, AVG(price_euros) AS avg_price
+FROM laptops_main
+GROUP BY company;
+
+-- Laptops with price above the average  (Get laptops whose price is above the average price.)
+SELECT company, product, price_euros
+FROM laptops_main
+WHERE price_euros > (SELECT AVG(price_euros) FROM laptops_main);
+
+
+---------< procedures/functions >----------
+
+
+CREATE PROCEDURE InsertLaptop(
+    IN company_name VARCHAR(100),
+    IN product_name VARCHAR(100),
+    IN type_name VARCHAR(50),
+    IN inches DECIMAL,
+    IN ram INT,
+    IN os VARCHAR(50),
+    IN weight DECIMAL,
+    IN price DECIMAL,
+    IN screen VARCHAR(50),
+    IN screen_width INT,
+    IN screen_height INT,
+    IN touchscreen BOOLEAN,
+    IN ips_panel BOOLEAN,
+    IN retina_display BOOLEAN,
+    IN cpu_company VARCHAR(50),
+    IN cpu_frequency DECIMAL,
+    IN cpu_model VARCHAR(100),
+    IN primary_storage_capacity INT,
+    IN secondary_storage_capacity INT,
+    IN primary_storage_type VARCHAR(50),
+    IN secondary_storage_type VARCHAR(50),
+    IN gpu_company VARCHAR(50),
+    IN gpu_model VARCHAR(100)
+)
+
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    INSERT INTO laptops_main 
+    (company, product, type_name, inches, ram, os, weight, price_euros, screen, screen_width, screen_height, 
+     touchscreen, ips_panel, retina_display, cpu_company, cpu_frequency, cpu_model, primary_storage_capacity, 
+     secondary_storage_capacity, primary_storage_type, secondary_storage_type, gpu_company, gpu_model)
+    VALUES
+    (company_name, product_name, type_name, inches, ram, os, weight, price, screen, screen_width, screen_height, 
+     touchscreen, ips_panel, retina_display, cpu_company, cpu_frequency, cpu_model, primary_storage_capacity, 
+     secondary_storage_capacity, primary_storage_type, secondary_storage_type, gpu_company, gpu_model);
+END;
+$$;
+
+-------< usage >--------
+
+CALL InsertLaptop('Dell', 'Inspiron 14 plus', 'Notebook', 15.6, 8, 'Windows 11', 2.2, 750.00, 'Full HD', 1920, 1080, 
+                  TRUE, TRUE, FALSE, 'Intel', 2.4, 'Core i5 1135G7', 512, 0, 'SSD', 'None', 'Intel', 'Iris Xe');
+
+select * from laptops_main
+where product in ('Inspiron 14 plus', 'Inspiron 10','Inspiron 11')
+
+SELECT * FROM pg_catalog.pg_proc WHERE proname = 'InsertLaptop';
+
+------< usage >---------
+
+CALL InsertLaptop('Dell', 'Inspiron 10', 'Notebook', 15.6, 8, 'Windows 10', 2.2, 750.00, 'Full HD', 1920, 1080, 
+                  TRUE, TRUE, FALSE, 'Intel', 2.4, 'Core i5 1135G7', 256, 0, 'SSD', 'None', 'Intel', 'Iris Xe'),
+CALL InsertLaptop('Dell', 'Inspiron 11', 'Notebook', 15.6, 8, 'Windows 10', 2.2, 750.00, 'Full HD', 1920, 1080, 
+                  TRUE, TRUE, FALSE, 'Intel', 2.4, 'Core i5 1135G7', 256, 0, 'SSD', 'None', 'Intel', 'Iris Xe');
+
+
+-----< update function >--------
+
+CREATE OR REPLACE PROCEDURE UpdateLaptopPrice(
+    product_name VARCHAR(100),
+    new_price DECIMAL
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE laptops_main
+    SET price_euros = new_price
+    WHERE product = product_name;
+END;
+$$;
+
+
+CALL UpdateLaptopPrice('Inspiron 15', 899.99);
+
+select price_euros,* from laptops_main
+where product in ('Inspiron 14 plus', 'Inspiron 15','Inspiron 11')
+
+
+-------< delete func >---------
+
+CREATE OR REPLACE PROCEDURE DeleteLaptopByProduct(
+    product_name VARCHAR(100)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM laptops_main
+    WHERE product = product_name;
+END;
+$$;
+
+
+CALL DeleteLaptopByProduct('Inspiron 11');
+
+select price_euros,* from laptops_main
+where product in ('Inspiron 14 plus', 'Inspiron 15','Inspiron 11')
+order by price_euros
+
+
+
+-----< select func >------
+
+CREATE OR REPLACE PROCEDURE GetLaptopsByCompany(
+    company_name VARCHAR(100)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM * 
+    FROM laptops_main
+    WHERE company = company_name;
+END;
+$$;
+
+CALL GetLaptopsByCompany('Dell');
+
+select company,* from laptops_main
+where company in ('Dell')
+
+
+
+-----< avg func >------
+
+CREATE OR REPLACE FUNCTION GetAveragePriceByCompany(company_name VARCHAR(100))
+RETURNS DECIMAL(10,2)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    avg_price DECIMAL(10,2);
+BEGIN
+    SELECT AVG(price_euros) INTO avg_price
+    FROM laptops_main
+    WHERE company = company_name;
+    
+    RETURN avg_price;
+END;
+$$;
+
+
+SELECT GetAveragePriceByCompany('Dell');
+
+-------<problamatic >------
+
+'''before indexing cost : 277.83 
+after indexing Index  idx_price_euros on price_table  
+(cost=0.28..229.66 rows=3560 width=39) 
+(actual time=0.432..1.973 rows=3561 loops=1)>'''
+
+EXPLAIN ANALYSE 
+SELECT * 
+FROM price_table
+ORDER BY price_euros DESC;
+
+CREATE INDEX idx_price_euros ON price_table(price_euros);
+
+'''before indexing cost :135.34 
+after indexing  (cost=99.68..99.89 rows=85 width=152) '''
+EXPLAIN 
+SELECT price_euros,touchscreen,* from laptops_main
+where touchscreen = TRUE and price_euros < 500
+order by price_euros;
+
+create index idx_laptops_main_touchscreen_price_euros on laptops_main(touchscreen, price_euros);
+create index idx_laptops_main_price_euros on laptops_main(price_euros);
+
+
+'''before indexing cost :10000000000
+after indexing (cost=26.28..119.96 rows=102 width=16)
+'''
+explain 
+select product 
+from laptops_main
+where product like '%Pro' ;
+
+
+create extension if not exists pg_trgm;
+create index idx_laptop_main_product_trgm
+on laptops_main using gin(product gin_trgm_ops);
+
+
+
+----------------triggers --------
+
+------< Create the Error Log Table >---------
+
+DROP TABLE IF EXISTS table_name;
+CREATE TABLE transaction_error_log_table (
+    error_id SERIAL PRIMARY KEY,
+    error_message TEXT NOT NULL,
+    error_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Verify the Failure Log Table
+SELECT * FROM transaction_error_log_table;
+
+---------< trigger function >----------
+CREATE OR REPLACE FUNCTION validate_price_and_log_error()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN    
+    IF NEW.price_euros < 0 THEN -- Checking price        
+        INSERT INTO transaction_error_log_table (table_name, error_message)
+        VALUES (
+            TG_TABLE_NAME,  -- Captures the table name that caused the error
+            'Invalid price_euros: ' || NEW.price_euros  -- Custom error message
+        );
+        -- Prevent the invalid update by returning NULL
+        RETURN NULL;  -- This prevents the update from being applied
+    END IF;
+    -- Allow the operation if the price is valid
+    RETURN NEW;
+END;
+$$;
+
+-----< trigger >-------
+
+DROP TRIGGER IF EXISTS validating_price_trigger ON price_table;
+
+CREATE TRIGGER validating_price_trigger
+BEFORE UPDATE ON price_table
+FOR EACH ROW
+EXECUTE FUNCTION validate_price_and_log_error();
+
+
+
+--------< testing >---------
+
+DO $$ 
+BEGIN
+    -- Attempt to update the price to a valid value
+    UPDATE price_table
+    SET price_euros = 900.00
+    WHERE id_laptop = 4842 AND product = 'Inspiron 15';  -- Valid price update
+    -- Simulate a failure: Attempt to update the price to an invalid value (negative)
+    BEGIN
+        UPDATE price_table
+        SET price_euros = -100.00
+        WHERE id_laptop = 4842 AND product = 'Inspiron 15';  -- Invalid price (negative)
+    EXCEPTION
+        WHEN OTHERS THEN            
+            INSERT INTO transaction_error_log_table (table_name, error_message)
+            VALUES ('price_table', 'Transaction failed: ' || SQLERRM);            
+            RAISE;
+    END;
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Log failure to transaction_error_log_table
+        INSERT INTO transaction_error_log_table (table_name, error_message)
+        VALUES ('price_table', 'Transaction failed in outer block: ' || SQLERRM);
+
+        -- Rethrow the error to abort the transaction
+        RAISE;
+END;
+$$;
+------------------
+
+select * from features_table;
+select * from company_table;
+select * from products_table;
